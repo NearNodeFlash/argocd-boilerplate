@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: rabbit
+  namespace: argocd
+spec:
+  description: Project for DWS and NNF software
+  destinations:
+  - namespace: '*'
+    # Deploying internally (to the same cluster ArgoCD is running on)
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  sourceRepos:
+  - GITOPS_REPO
+  syncWindows:
+  - kind: allow
+    schedule: '0 1 * * *'
+    duration: 24h
+    manualSync: true
+

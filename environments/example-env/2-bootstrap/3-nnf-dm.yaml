@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 3-nnf-dm
+  # The namespace that argocd is using.
+  namespace: argocd
+  # The finalizer will cause nnf-dm to be deleted before this Application
+  # resource is deleted.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: rabbit
+  source:
+    repoURL: GITOPS_REPO
+    targetRevision: HEAD
+    path: environments/STAGING_EXAMPLE/nnf-dm
+  destination:
+    # When deploying internally (to the same cluster ArgoCD is running on)
+    server: https://kubernetes.default.svc
+    namespace: nnf-dm-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+
