@@ -54,13 +54,17 @@ fi
 
 LC_ALL=C
 DBG=
-[[ -n $DRYRUN ]] && DBG=echo
+[[ -n $DRYRUN ]] && DBG="echo"
+
+set -e
+set -o pipefail
+
 for x in environments/"$ENV"/*bootstrap*
 do
     if [[ -n $TO_LEVEL ]]; then
-        bn=$(basename $x)
+        bn=$(basename "$x")
         lvl=${bn%%-*}
-        if (( $lvl > $TO_LEVEL )); then
+        if (( lvl > TO_LEVEL )); then
             break
         fi
     fi

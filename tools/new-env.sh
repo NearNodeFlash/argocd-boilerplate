@@ -17,15 +17,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-while getopts 'r:e:h' opt; do
+while getopts 'r:e:C:h' opt; do
 case "$opt" in
+C) SYSCONFIG_PATH="$OPTARG" ;;
 e) ENV="$OPTARG" ;;
 r) REPO_URL="$OPTARG" ;;
 \?|h)
-    echo "Usage: $0 -e ENVIRONMENT -r REPO_URL"
+    echo "Usage: $0 -e ENVIRONMENT -r REPO_URL [-C SYSCONFIG_PATH]"
     echo
-    echo "  ENVIRONMENT   Name of new environment to create."
-    echo "  REPO_URL      Http URL of gitops repo."
+    echo "  -C SYSCONFIG_PATH Path to SystemConfiguration yaml file."
+    echo "  -e ENVIRONMENT    Name of new environment to create."
+    echo "  -r REPO_URL       Http URL of gitops repo."
     exit 1
     ;;
 esac
@@ -42,6 +44,7 @@ elif [[ -d environments/$ENV ]]; then
     echo "Environment $ENV already exists"
     exit 1
 fi
+
 if [[ -z $REPO_URL ]]; then
     echo "You must specify -r"
     exit 1
@@ -50,7 +53,22 @@ elif [[ $REPO_URL != http* ]]; then
     exit 1
 fi
 
+if [[ -n $SYSCONFIG_PATH ]]; then
+    if [[ ! -r $SYSCONFIG_PATH ]]; then
+        echo "The SystemConfiguration yaml is not readable at $SYSCONFIG_PATH"
+        exit 1
+    fi
+    if ! kind=$(yq .kind "$SYSCONFIG_PATH"); then
+        echo "The file does not look like a SystemConfiguration yaml: $SYSCONFIG_PATH"
+        exit 1
+    elif [[ ! $kind = SystemConfiguration ]]; then
+        echo "The file does not contain a SystemConfiguration yaml: $SYSCONFIG_PATH"
+        exit 1
+    fi
+fi
+
 set -e
+set -o pipefail
 
 echo "Creating the '$ENV' environment..."
 cp -r environments/example-env environments/"$ENV"
@@ -65,7 +83,16 @@ do
       "$yaml_file" && rm "$yaml_file.bak"
 done
 
+sysconfig_dest="environments/$ENV/nnf-sos/systemconfiguration.yaml"
+if [[ -n $SYSCONFIG_PATH ]]; then
+    cp "$SYSCONFIG_PATH" "$sysconfig_dest"
+else
+    echo "Next steps:"
+    echo "  Add your SystemConfiguration yaml to $sysconfig_dest"
+fi
+
+echo
 echo "Next steps:"
 echo "  git add environments"
-echo "  git commit -m 'create $ENV'"
+echo "  git commit -m 'Create $ENV'"
 
