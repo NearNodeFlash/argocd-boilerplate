@@ -21,7 +21,7 @@ following steps.
 ```bash
 git clone git@github.com:NearNodeFlash/site-gitops
 cd site-gitops
-tools/new-env.sh -e us-east-1 -r https://github.com/NearNodeFlash/site-gitops
+tools/new-env.sh -e us-east-1 -r https://github.com/NearNodeFlash/site-gitops -C /path/to/new/us-east-1-systemconfig.yaml 
 git add environments
 git commit -m 'create us-east-1'
 git push
@@ -69,16 +69,6 @@ cd site-gitops
 tar xfo $TARFILE -C environments/us-east-1
 git add environments/us-east-1
 git commit -m "Apply manifests for release $TAG"
-git push
-```
-
-Add the **SystemConfiguration** resource that describes the hardware in your new
-environment:
-
-```bash
-cp /path/to/new/us-east-1-systemconfig.yaml environments/us-east-1/nnf-sos/systemconfiguration.yaml
-git add environments/us-east-1
-git commit -m 'Add SystemConfiguration for us-east-1'
 git push
 ```
 

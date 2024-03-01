@@ -53,8 +53,11 @@ elif [[ ! -r $MANIFEST ]]; then
 fi
 
 DBG=
-[[ -n $DRYRUN ]] && DBG=echo
+[[ -n $DRYRUN ]] && DBG="echo"
 
-$DBG tar xfo $MANIFEST -C environments/"$ENV"
+set -e
+set -o pipefail
+
+$DBG tar xfo "$MANIFEST" -C environments/"$ENV"
 exit $?
 
