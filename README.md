@@ -58,15 +58,15 @@ To use the [Github CLI](https://cli.github.com) tool:
 git clone https://github.com/NearNodeFlash/nnf-deploy.git
 cd nnf-deploy
 TAG=v0.23.1
-TARFILE=/tmp/manifest-$TAG.tar
-gh release download -O $TARFILE $TAG
+TARFILES=/tmp/manifests-$TAG
+gh release download -D $TARFILES $TAG
 ```
 
 Apply the manifest overlay to the gitops repo:
 
 ```bash
 cd site-gitops
-tar xfo $TARFILE -C environments/us-east-1
+tar xfo $TARFILES/manifests.tar -C environments/us-east-1
 git add environments/us-east-1
 git commit -m "Apply manifests for release $TAG"
 git push
