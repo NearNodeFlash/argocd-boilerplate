@@ -25,7 +25,7 @@ n) DRYRUN=1 ;;
 \?|h)
     echo "Usage: $0 [-n] -e ENVIRONMENT -m MANIFEST"
     echo
-    echo "  -e ENVIRONMENT   Name of environment to apply manifests."
+    echo "  -e ENVIRONMENT   Name of environment to unpack manifests."
     echo "  -m MANIFEST      Name of tarfile containing the release manifest."
     echo "  -n               Dry run."
     exit 1

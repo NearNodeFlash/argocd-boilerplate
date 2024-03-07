@@ -66,8 +66,7 @@ Apply the manifest overlay to the gitops repo:
 
 ```bash
 cd site-gitops
-tar xfo $TARFILES/manifests.tar -C environments/us-east-1
-git add environments/us-east-1
+tools/unpack-manifest.sh -e us-east-1 -m $TARFILES/manifests.tar
 git commit -m "Apply manifests for release $TAG"
 git push
 ```
@@ -115,7 +114,7 @@ Upgrade the manifests for an existing environment by unpacking the new manifests
 
 ```bash
 cd site-gitops
-tar xfo $NEW_TARFILE -C environments/us-east-1
+tools/unpack-manifest.sh -e us-east-1 -m $NEW_TARFILE
 git status
 ```
 
