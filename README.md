@@ -61,7 +61,20 @@ by navigating to the Github repo with your browser or by using the Github CLI to
 
 To use your browser, navigate to the nnf-deploy repo and click on "Releases" on the right-hand side. Select the desired release, click to expand the "Assets" for that release, click on the "manifests.tar", or "manifests-kind.tar" if using KIND (Kubernetes-in-Docker), to download the manifest.
 
-To use the [Github CLI](https://cli.github.com) tool:
+This can also be done with the [Github CLI](https://cli.github.com) tool, using a reference to the nnf-deploy repo:
+
+```bash
+gh release -R https://github.com/NearNodeFlash/nnf-deploy.git list
+```
+
+```bash
+TAG=v0.0.12
+TARFILES=/tmp/manifests-$TAG
+gh release -R https://github.com/NearNodeFlash/nnf-deploy.git download -D $TARFILES $TAG
+```
+
+Or you can do this from a cloned nnf-deploy repo along with the 
+[Github CLI](https://cli.github.com) tool:
 
 ```bash
 git clone https://github.com/NearNodeFlash/nnf-deploy.git
