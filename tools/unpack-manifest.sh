@@ -52,12 +52,117 @@ elif [[ ! -r $MANIFEST ]]; then
     exit 1
 fi
 
+if ! which python3 >/dev/null 2>&1; then
+    echo "Unable to find python3 in PATH"
+    exit 1
+elif ! python3 -c 'import yaml' 2>/dev/null; then
+    echo "Unable to find PyYAML"
+    exit 1
+fi
+
+LC_ALL=C
 DBG=
 [[ -n $DRYRUN ]] && DBG="echo"
 
 set -e
 set -o pipefail
 
-$DBG tar xfo "$MANIFEST" -C environments/"$ENV"
-exit $?
+if ! $DBG tar xfo "$MANIFEST" -C environments/"$ENV"; then
+    echo "Unable to unpack the manifests"
+    exit 1
+fi
+
+[[ -n $DRYRUN ]] && exit 0
+
+REFERENCES_DIR="environments/$ENV/nnf-sos/reference"
+DEFAULT_PROF="environments/$ENV/nnf-sos/default-nnfstorageprofile.yaml"
+PLACEHOLDER_PROF="$REFERENCES_DIR/placeholder-nnfstorageprofile.yaml"
+PLACEHOLDER_IS_UPDATED=
+
+# extract_placeholder_nnfstorageprofile extracts and saves a copy of the
+# NnfStorageProfile/placeholder resource.
+function extract_placeholder_nnfstorageprofile {
+    local sos_examples="environments/$ENV/nnf-sos/nnf-sos-examples.yaml"
+
+    mkdir -p "$REFERENCES_DIR" || exit 1
+
+    # Wishing for yq(1)...
+    if ! python3 - "$sos_examples" <<END > "$PLACEHOLDER_PROF"
+import yaml, sys
+with open(sys.argv[1], 'r') as file:
+    docs = yaml.safe_load_all(file)
+    for doc in docs:
+        if doc['kind'] == 'NnfStorageProfile' and doc['metadata']['name'] == 'placeholder':
+            print(yaml.dump(doc))
+            break
+END
+    then
+        echo "Unable to extract NnfStorageProfile/placeholder: $PLACEHOLDER_PROF"
+        exit 1
+    fi
+
+    # Have we updated an existing NnfStorageProfile/placeholder?
+    if out=$(git diff "$PLACEHOLDER_PROF" 2> /dev/null); then
+        [[ -n $out ]] && PLACEHOLDER_IS_UPDATED=yes
+    fi
+    true # Don't let the if-block above return a failure to our caller.
+}
+
+# default_nnfstorageprofile creates NnfStorageProfile/default from
+# NnfStorageProfile/placeholder, making the new resource the default profile.
+function default_nnfstorageprofile {
+    # Wishing for yq(1)...
+    if ! python3 - "$PLACEHOLDER_PROF" <<END > "$DEFAULT_PROF"
+import yaml, sys
+with open(sys.argv[1], 'r') as file:
+    doc = yaml.safe_load(file)
+    if doc['kind'] != 'NnfStorageProfile' or doc['metadata']['name'] != 'placeholder':
+        print("Unexpected content in $PLACEHOLDER_PROF", file=sys.stderr)
+        sys.exit(1)
+    doc['data']['default'] = True
+    ns = doc['metadata']['namespace']
+    del(doc['metadata'])
+    doc['metadata'] = {"name": "default", "namespace": ns}
+    print(yaml.dump(doc))
+END
+    then
+        echo "Unable to create default NnfStorageProfile: $DEFAULT_PROF"
+        exit 1
+    fi
+}
+
+# Extract the new NnfStorageProfile/placeholder and save it so it's easy to
+# see whether it had any updates in this manifest.
+extract_placeholder_nnfstorageprofile
+
+# Create NnfStorageProfile/default only if it does not already exist.
+if [[ ! -f $DEFAULT_PROF ]]; then
+    default_nnfstorageprofile
+elif [[ -n $PLACEHOLDER_IS_UPDATED ]]; then
+    echo
+    echo "NOTE:"
+    echo "  Inspect the changes to $PLACEHOLDER_PROF"
+    echo "  for any updates that you may need to add to $DEFAULT_PROF."
+    echo
+fi
+
+if crds=$(git status "environments/$ENV" | grep -E '\-crds.yaml$'); then
+    if [[ -n $crds ]]; then
+        echo
+        echo "NOTE:"
+        echo "  The following manifests show CRD changes. Before pushing these"
+        echo "  changes to your gitops repo you should remove all jobs and"
+        echo "  workflows from the Rabbit cluster and undeploy the Rabbit"
+        echo "  software from the cluster by removing the ArgoCD Application"
+        echo "  resources (the bootstrap resources)."
+        echo "  Consult 'tools/undeploy-env -C' to remove all Rabbit software"
+        echo "  CRDs from the cluster."
+        echo
+        # shellcheck disable=SC2066
+        for x in "$crds"; do
+            echo "  $x"
+        done
+        echo
+    fi
+fi
 
