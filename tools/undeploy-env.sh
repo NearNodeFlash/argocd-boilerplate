@@ -60,6 +60,14 @@ if [[ ! $TO_LEVEL =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
+if ! which python3 >/dev/null 2>&1; then
+    echo "Unable to find python3 in PATH"
+    exit 1
+elif ! python3 -c 'import yaml' 2>/dev/null; then
+    echo "Unable to find PyYAML"
+    exit 1
+fi
+
 LC_ALL=C
 DBG=
 [[ -n $DRYRUN ]] && DBG="echo"
@@ -86,14 +94,14 @@ _delete_manifest() {
     local APP_YAML="$1"
 
     # Stop if this Application is still active.
-    app_name=$(yq -M .metadata.name "$APP_YAML")
+    app_name=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["metadata"]["name"])' < "$APP_YAML")
     if kubectl get application -n argocd "$app_name" 1>/dev/null 2>&1 ; then
         echo "Stopping at active Application resource $app_name."
         exit 1
     fi
 
     # Find the path to the service this Application resource controls.
-    svc_path=$(yq -M .spec.source.path "$APP_YAML")
+    svc_path=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["spec"]["source"]["path"])' < "$APP_YAML")
     if [[ ! -d $svc_path ]]; then
         echo "Application $app_yaml refers to source path $svc_path which cannot be found in this workarea."
         exit 1
@@ -141,9 +149,9 @@ delete_manifests() {
         # reverse order...
         for app_yaml in $(echo "$bootstrap_dir"/[0-9]*.yaml | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
         do
-            [[ $(yq -M .kind "$app_yaml") == Application ]] || continue
-
-            _delete_manifest "$app_yaml"
+            if grep -qE '^kind: Application' "$app_yaml"; then
+                _delete_manifest "$app_yaml"
+            fi
         done
     done
 }

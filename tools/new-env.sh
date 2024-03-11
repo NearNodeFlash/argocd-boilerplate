@@ -58,11 +58,8 @@ if [[ -n $SYSCONFIG_PATH ]]; then
         echo "The SystemConfiguration yaml is not readable at $SYSCONFIG_PATH"
         exit 1
     fi
-    if ! kind=$(yq .kind "$SYSCONFIG_PATH"); then
+    if ! grep -qE '^kind: SystemConfiguration$' "$SYSCONFIG_PATH"; then
         echo "The file does not look like a SystemConfiguration yaml: $SYSCONFIG_PATH"
-        exit 1
-    elif [[ ! $kind = SystemConfiguration ]]; then
-        echo "The file does not contain a SystemConfiguration yaml: $SYSCONFIG_PATH"
         exit 1
     fi
 fi
