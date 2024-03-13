@@ -7,7 +7,11 @@ Begin by making a fork of the boilerplate repo to create a new gitops repo for
 your site's environments (clusters). Keep one gitops repo for your site, with all of its
 environments in the 'main' branch.
 
-**The gitops repo does not use branches.**
+A gitops repo usually contains private information, so your repo should be
+private. Consult [Boilerplate Tracking](./Boilerplate-tracking.md) for tips
+on tracking the boilerplate repo in your private repo.
+
+**The gitops repo does not use branches for environment or release management.**
 
 **Note** *Branches are an anti-pattern for
 the gitops repo.* Do not confuse "gitops"
@@ -105,6 +109,18 @@ git push
 Finally, confirm that the manifests hook up properly with Kustomize (see
 "Debugging manifests with Kustomize" below) and push the changes to the gitops
 repository.
+
+### To get a manifest from nnf-deploy's master branch
+
+```bash
+cd nnf-deploy
+make manifests
+```
+
+```bash
+cd site-gitops
+./tools/unpack-manifest.sh -e kind -m ../nnf-deploy/manifests-kind.tar
+```
 
 ### Deploy bootstraps
 
