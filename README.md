@@ -277,6 +277,12 @@ is reset, you may continue to retrieve it with the following command:
 argocd admin initial-password -n argocd
 ```
 
+Or copy it to the clipboard:
+
+```bash
+argocd admin initial-password -n argocd | head -n 1 | pbcopy
+```
+
 The login user is 'admin', with the password obtained above.
 
 ```bash
