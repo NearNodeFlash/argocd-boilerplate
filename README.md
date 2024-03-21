@@ -181,7 +181,7 @@ Finally, push the changes to the gitops repository so ArgoCD can find them. If
 you are upgrading services whose bootstraps are already deployed then ArgoCD
 will notice the updates to the gitops repo and will update the deployed system.
 
-## Using with KIND KIND
+## Using with KIND
 
 Create a fork of the boilerplate gitops repo as one of your personal
 repositories. Use the instructions in [Boilerplate Tracking](./Boilerplate-tracking.md).
@@ -303,15 +303,52 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 ## Add Gitops Repo to ArgoCD
 
-Use your personal github token to give ArgoCD access to the gitops repo.
+Create a github token to give ArgoCD access to the gitops repo.
 This must be done before you deploy any ArgoCD resources to your cluster. You
 can do this with the `argocd` command or with the GUI.
 
 If you are using the `argocd` command:
 
 ```bash
-argocd repo add https://github.com/NearNodeFlash/gitops.git --username $MY_GITHUB_NAME --password $GH_TOKEN --name gitops
+argocd repo add https://github.com/NearNodeFlash/gitops.git --username $GITHUB_NAME --password $GH_TOKEN --name gitops
 ```
 
 If you are using the ArgoCD GUI, select "Settings" on the left-hand side and then
 "Repositories" and then "+Connect Repo" across the top.
+
+## Disabling Self-Healing
+
+Self-healing is how ArgoCD detects changes and executes corrections to the
+running K8s system. You may want to disable this if you're doing a series of
+experiments directly on the live system.
+
+To disable self-healing for a specific service you can directly edit that
+live Application resource or you can edit the Application resource in the
+gitops bootstrap directory.
+
+To disable self-healing by directly editing a live Application resource (in
+this case we'll disable it for the nnf-sos service):
+
+```bash
+APP=2-nnf-sos
+kubectl patch application -n argocd $APP --type=json -p '[{"op":"replace", "path":"/spec/syncPolicy/automated/selfHeal", "value": false}]'
+```
+
+That setting on the live resource will be lost the next time the bootstraps are
+redeployed.
+
+To disable self-healing long-term, update the Application resource in its
+gitops bootstrap directory and redeploy the bootstraps (in the case we'll
+disable it for the nnf-sos service):
+
+```bash
+cd site-gitops
+vi environments/$ENV/2-bootstrap0/2-nnf-sos.yaml
+  <change the syncPolicy.automated.selfHeal value to false>
+git add environments/$ENV
+git commit -s -m 'disable self-healing for nnf-sos'
+git push
+./tools/deploy-env.sh -e $ENV
+```
+
+ArgoCD will restore the system when you re-enable self-healing.
