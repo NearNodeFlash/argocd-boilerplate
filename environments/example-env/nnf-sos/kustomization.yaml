@@ -6,9 +6,12 @@ resources:
 - nnf-sos-crds.yaml
 - nnf-sos.yaml
 - nnf-sos-examples.yaml
+- nnf-sos-ports.yaml
+#- nnf-sos-prometheus.yaml
+
+# The following are cluster-specific and are not touched by unpack-manifest.
 - systemconfiguration.yaml
 - default-nnfstorageprofile.yaml
-#- nnf-sos-prometheus.yaml
 
 components:
 - ../components/container-locations

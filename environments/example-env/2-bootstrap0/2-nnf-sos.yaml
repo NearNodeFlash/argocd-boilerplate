@@ -34,3 +34,8 @@ spec:
       # nnfcontainerprofile CRD and the SystemConfiguration resource.
       - ServerSideApply=true
 
+  ignoreDifferences:
+  - group: nnf.cray.hpe.com
+    kind: NnfPortManager
+    jsonPointers:
+    - /spec/allocations
