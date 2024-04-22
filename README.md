@@ -181,7 +181,7 @@ Finally, push the changes to the gitops repository so ArgoCD can find them. If
 you are upgrading services whose bootstraps are already deployed then ArgoCD
 will notice the updates to the gitops repo and will update the deployed system.
 
-## Using with KIND
+## Using with KIND or a private repo
 
 Create a fork of the boilerplate gitops repo as one of your personal
 repositories. Use the instructions in [Boilerplate Tracking](./Boilerplate-tracking.md).
@@ -197,6 +197,11 @@ left-hand side, select "Developer Settings", then "Personal access tokens".
 * If you choose the "classic" token then select the "repo" scope.
 
 Use this token to give ArgoCD access to this repository. See "Add Gitops Repo to ArgoCD" below.
+
+### Using with private GitHub repos
+
+For "private" GitHub repos (as opposed to "personal" GitHub repos), a "classic" token, created as described above, is easy for most anyone on your team to manage. If you choose a "Fine-grained" token then in addition to the instructions above you must set the "Resource owner" to the organization that contains the repo, rather than listing yourself as the owner, and it's not typical for all team members to have the ability to set the organization as the owner.
+
 
 ## Debugging manifests with Kustomize
 
