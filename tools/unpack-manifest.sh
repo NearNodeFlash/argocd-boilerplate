@@ -76,48 +76,48 @@ fi
 
 REFERENCES_DIR="environments/$ENV/nnf-sos/reference"
 DEFAULT_PROF="environments/$ENV/nnf-sos/default-nnfstorageprofile.yaml"
-PLACEHOLDER_PROF="$REFERENCES_DIR/placeholder-nnfstorageprofile.yaml"
-PLACEHOLDER_IS_UPDATED=
+TEMPLATE_PROF="$REFERENCES_DIR/template-nnfstorageprofile.yaml"
+TEMPLATE_IS_UPDATED=
 
-# extract_placeholder_nnfstorageprofile extracts and saves a copy of the
-# NnfStorageProfile/placeholder resource.
-function extract_placeholder_nnfstorageprofile {
+# extract_template_nnfstorageprofile extracts and saves a copy of the
+# NnfStorageProfile/template resource.
+function extract_template_nnfstorageprofile {
     local sos_examples="environments/$ENV/nnf-sos/nnf-sos-examples.yaml"
 
     mkdir -p "$REFERENCES_DIR" || exit 1
 
     # Wishing for yq(1)...
-    if ! python3 - "$sos_examples" <<END > "$PLACEHOLDER_PROF"
+    if ! python3 - "$sos_examples" <<END > "$TEMPLATE_PROF"
 import yaml, sys
 with open(sys.argv[1], 'r') as file:
     docs = yaml.safe_load_all(file)
     for doc in docs:
-        if doc['kind'] == 'NnfStorageProfile' and doc['metadata']['name'] == 'placeholder':
+        if doc['kind'] == 'NnfStorageProfile' and doc['metadata']['name'] == 'template':
             print(yaml.dump(doc))
             break
 END
     then
-        echo "Unable to extract NnfStorageProfile/placeholder: $PLACEHOLDER_PROF"
+        echo "Unable to extract NnfStorageProfile/template: $TEMPLATE_PROF"
         exit 1
     fi
 
-    # Have we updated an existing NnfStorageProfile/placeholder?
-    if out=$(git diff "$PLACEHOLDER_PROF" 2> /dev/null); then
-        [[ -n $out ]] && PLACEHOLDER_IS_UPDATED=yes
+    # Have we updated an existing NnfStorageProfile/template?
+    if out=$(git diff "$TEMPLATE_PROF" 2> /dev/null); then
+        [[ -n $out ]] && TEMPLATE_IS_UPDATED=yes
     fi
     true # Don't let the if-block above return a failure to our caller.
 }
 
 # default_nnfstorageprofile creates NnfStorageProfile/default from
-# NnfStorageProfile/placeholder, making the new resource the default profile.
+# NnfStorageProfile/template, making the new resource the default profile.
 function default_nnfstorageprofile {
     # Wishing for yq(1)...
-    if ! python3 - "$PLACEHOLDER_PROF" <<END > "$DEFAULT_PROF"
+    if ! python3 - "$TEMPLATE_PROF" <<END > "$DEFAULT_PROF"
 import yaml, sys
 with open(sys.argv[1], 'r') as file:
     doc = yaml.safe_load(file)
-    if doc['kind'] != 'NnfStorageProfile' or doc['metadata']['name'] != 'placeholder':
-        print("Unexpected content in $PLACEHOLDER_PROF", file=sys.stderr)
+    if doc['kind'] != 'NnfStorageProfile' or doc['metadata']['name'] != 'template':
+        print("Unexpected content in $TEMPLATE_PROF", file=sys.stderr)
         sys.exit(1)
     doc['data']['default'] = True
     ns = doc['metadata']['namespace']
@@ -131,17 +131,17 @@ END
     fi
 }
 
-# Extract the new NnfStorageProfile/placeholder and save it so it's easy to
+# Extract the new NnfStorageProfile/template and save it so it's easy to
 # see whether it had any updates in this manifest.
-extract_placeholder_nnfstorageprofile
+extract_template_nnfstorageprofile
 
 # Create NnfStorageProfile/default only if it does not already exist.
 if [[ ! -f $DEFAULT_PROF ]]; then
     default_nnfstorageprofile
-elif [[ -n $PLACEHOLDER_IS_UPDATED ]]; then
+elif [[ -n $TEMPLATE_IS_UPDATED ]]; then
     echo
     echo "NOTE:"
-    echo "  Inspect the changes to $PLACEHOLDER_PROF"
+    echo "  Inspect the changes to $TEMPLATE_PROF"
     echo "  for any updates that you may need to add to $DEFAULT_PROF."
     echo
 fi
