@@ -81,7 +81,7 @@ set -o pipefail
 # normal way to undeploy a service. ArgoCD will then delete anything that was
 # in the manifest for that service, but it will leave CRDs behind.
 delete_bootstraps() {
-    for x in $(echo environments/"$ENV"/*bootstrap* | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
+    for x in $(echo environments/"$ENV"/*bootstrap[0-9]* | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
     do
         bn=$(basename "$x")
         lvl=${bn%%-*}
@@ -139,7 +139,7 @@ delete_manifests() {
     fi
 
     # For each bootstrap level in reverse order...
-    for bootstrap_dir in $(echo environments/"$ENV"/*bootstrap* | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
+    for bootstrap_dir in $(echo environments/"$ENV"/*bootstrap[0-9]* | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
     do
         bn=$(basename "$bootstrap_dir")
         lvl=${bn%%-*}
