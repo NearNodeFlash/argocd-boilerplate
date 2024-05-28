@@ -42,11 +42,12 @@ git push
 
 ### Bootstrap levels
 
-The new environment will contain a series of directories named `x-bootstrap` where
-`x` indicates a level number. Each bootstrap directory contains one or more
-ArgoCD *AppProject* or *Application* resources and a `kustomization.yaml` file
-to be used by Kustomize. The Application resources tell ArgoCD how to deploy a
-particular service.
+The new environment will contain a series of directories named `X-bootstrapY`
+where `X` indicates a level number and `Y` is a grouping within that level.
+Each bootstrap directory contains one or more ArgoCD *AppProject* or
+*Application* resources and a `kustomization.yaml` file to be used by
+Kustomize. The Application resources tell ArgoCD how to deploy a particular
+service.
 
 Bootstrap level 0 indicates the lowest base upon which the other levels depend
 and in this case it applies the ArgoCD AppProject resource that creates the
@@ -57,6 +58,12 @@ The bootstrap levels are deployed in ascending order and undeployed in
 descending order. The services are assigned a bootstrap level based on their
 dependence on each other. In general, to undeploy and/or upgrade the services at
 a particular level the bootstraps for any higher levels must be undeployed.
+
+#### Persistent grouping
+
+A bootstrap directory having a negative grouping value, such as `X-bootstrap-1`
+will be persistent; it will never be undeployed by the `tools/undeploy-env.sh`
+tool.
 
 ### Populate the new environment in your gitops repo
 
