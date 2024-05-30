@@ -51,7 +51,7 @@ fi
 if [[ -z $REPO_URL ]]; then
     echo "You must specify -r"
     exit 1
-elif [[ $REPO_URL != http* ]]; then
+elif [[ $REPO_URL != +(http*|git*) ]]; then
     echo "The repo url must be an http or https URL."
     exit 1
 fi
