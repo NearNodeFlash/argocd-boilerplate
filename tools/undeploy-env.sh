@@ -19,14 +19,16 @@
 
 TO_LEVEL=1
 
-while getopts 'ne:l:h:C' opt; do
+while getopts 'ne:l:h:CD:' opt; do
 case "$opt" in
 C) DESTROY_CRDS=1 ;;
+D) DEEP_CLEAN_SERVICE="$OPTARG" ;;
 e) ENV="$OPTARG" ;;
 l) TO_LEVEL="$OPTARG" ;;
 n) DRYRUN=1 ;;
 \?|h)
     echo "Usage: $0 [-n] [-C] [-l LEVEL] -e ENVIRONMENT"
+    echo "       $0 [-n] -D SERVICE_NAME -e ENVIRONMENT"
     echo
     echo "  -e ENVIRONMENT   Name of environment to undeploy."
     echo "  -l LEVEL         Undeploy bootstraps down to LEVEL, where LEVEL is"
@@ -38,7 +40,15 @@ n) DRYRUN=1 ;;
     echo "                   This removes Custom Resource Definitions (CRDs)."
     echo "                   Use this after the bootstraps have been undeployed"
     echo "                   and prior to an upgrade that modifies CRDs. This"
-    echo "                   honors the [-l LEVEL] arg."
+    echo "                   honors the -l arg."
+    echo "  -D SERVICE_NAME  Undeploy a service's whole manifest, minus CRDs."
+    echo "                   This is the service name as shown by 'argocd app list'."
+    echo "                   This is like -C, but preserves CRDs. Use this if"
+    echo "                   a deep clean of a service is required, which"
+    echo "                   usually happens after ArgoCD got stuck and the"
+    echo "                   admin had to force the deletion of the ArgoCD"
+    echo "                   Application resource. This ignores the -l arg and"
+    echo "                   operates directly on the specified service."
     echo "  -n               Dry run."
     exit 1
     ;;
@@ -94,6 +104,7 @@ delete_bootstraps() {
 
 _delete_manifest() {
     local APP_YAML="$1"
+    local MODE="$2"
 
     # Stop if this Application is still active.
     app_name=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["metadata"]["name"])' < "$APP_YAML")
@@ -105,7 +116,7 @@ _delete_manifest() {
     # Find the path to the service this Application resource controls.
     svc_path=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["spec"]["source"]["path"])' < "$APP_YAML")
     if [[ ! -d $svc_path ]]; then
-        echo "Application $app_yaml refers to source path $svc_path which cannot be found in this workarea."
+        echo "Application $APP_YAML refers to source path $svc_path which cannot be found in this workarea."
         exit 1
     fi
 
@@ -113,7 +124,16 @@ _delete_manifest() {
     KBUILD="bin/kustomize build"
     KDEL="kubectl delete --ignore-not-found=true -f-"
     if [[ -n $DRYRUN ]]; then
-        echo "$KBUILD $svc_path | $KDEL"
+        local filter
+        if [[ $MODE == no_crds ]]; then
+            filter="| filter-out-crds "
+        fi
+        echo "$KBUILD $svc_path $filter| $KDEL"
+        return
+    fi
+
+    if [[ $MODE == no_crds ]]; then
+        $KBUILD "$svc_path" | python3 -c 'import yaml, sys; docs=yaml.safe_load_all(sys.stdin); _ = [print("%s---" % yaml.dump(doc)) for doc in docs if doc["kind"] != "CustomResourceDefinition"]' | $KDEL
     else
         $KBUILD "$svc_path" | $KDEL
     fi
@@ -152,13 +172,53 @@ delete_manifests() {
         for app_yaml in $(echo "$bootstrap_dir"/[0-9]*.yaml | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
         do
             if grep -qE '^kind: Application' "$app_yaml"; then
-                _delete_manifest "$app_yaml"
+                _delete_manifest "$app_yaml" "all"
             fi
         done
     done
 }
 
-if [[ -n $DESTROY_CRDS ]]; then
+# Deep clean a service, leaving the CRDs. Find the ArgoCD Application that
+# matches the specified service name and remove the service's manifest.
+deep_clean_service() {
+    if [[ ! -x bin/kustomize ]]; then
+        if ! make kustomize; then
+            echo "Unable to retrieve the kustomize tool."
+            exit 1
+        fi
+    fi
+
+    # Find the Application yaml, so we can verify that it's gone.
+    # Then we can delete the service's manifest.
+
+    # For each bootstrap level in reverse order...
+    for bootstrap_dir in $(echo environments/"$ENV"/*bootstrap[0-9]* | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
+    do
+        # Within this bootstrap dir search each Application resource in
+        # reverse order for our service...
+        for app_yaml in $(echo "$bootstrap_dir"/[0-9]*.yaml | awk '{ for (i=NF; i>0; i--) printf("%s ",$i); printf("\n")}')
+        do
+
+            if ! grep -qE '^kind: Application' "$app_yaml"; then
+                continue
+            fi
+            svc_name=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["metadata"]["name"])' < "$app_yaml")
+            if [[ $svc_name != "$DEEP_CLEAN_SERVICE" ]]; then
+                continue
+            fi
+            echo "Found $DEEP_CLEAN_SERVICE in $app_yaml."
+
+            _delete_manifest "$app_yaml" "no_crds"
+            # Found it, we're done.
+            return
+        done
+    done
+    echo "Service $DEEP_CLEAN_SERVICE not found."
+}
+
+if [[ -n $DEEP_CLEAN_SERVICE ]]; then
+    deep_clean_service
+elif [[ -n $DESTROY_CRDS ]]; then
     delete_manifests
 else
     delete_bootstraps
