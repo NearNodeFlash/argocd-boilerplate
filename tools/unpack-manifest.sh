@@ -135,34 +135,42 @@ END
 # see whether it had any updates in this manifest.
 extract_template_nnfstorageprofile
 
+unset MESSAGES
+message_count=0
+
 # Create NnfStorageProfile/default only if it does not already exist.
 if [[ ! -f $DEFAULT_PROF ]]; then
     default_nnfstorageprofile
 elif [[ -n $TEMPLATE_IS_UPDATED ]]; then
-    echo
-    echo "NOTE:"
-    echo "  Inspect the changes to $TEMPLATE_PROF"
-    echo "  for any updates that you may need to add to $DEFAULT_PROF."
-    echo
+    (( message_count = message_count + 1 ))
+    MESSAGES="$MESSAGES
+NOTE $message_count:
+  Inspect the changes to $TEMPLATE_PROF
+  for any updates that you may need to add to $DEFAULT_PROF.
+
+"
 fi
 
 if crds=$(git status "environments/$ENV" | grep -E '\-crds.yaml$'); then
     if [[ -n $crds ]]; then
-        echo
-        echo "NOTE:"
-        echo "  The following manifests show CRD changes. Before pushing these"
-        echo "  changes to your gitops repo you should remove all jobs and"
-        echo "  workflows from the Rabbit cluster and undeploy the Rabbit"
-        echo "  software from the cluster by removing the ArgoCD Application"
-        echo "  resources (the bootstrap resources)."
-        echo "  Consult 'tools/undeploy-env -C' to remove all Rabbit software"
-        echo "  CRDs from the cluster."
-        echo
-        # shellcheck disable=SC2066
-        for x in "$crds"; do
-            echo "  $x"
-        done
-        echo
+        (( message_count = message_count + 1 ))
+        MESSAGES="$MESSAGES
+NOTE $message_count:
+  The following manifests show CRD changes. Before pushing these
+  changes to your gitops repo you should remove all jobs and
+  workflows from the Rabbit cluster and undeploy the Rabbit
+  software from the cluster by removing the ArgoCD Application
+  resources (the bootstrap resources).
+  Consult 'tools/undeploy-env -C' to remove all Rabbit software
+  CRDs from the cluster.
+
+$crds
+
+"
     fi
+fi
+
+if [[ -n $MESSAGES ]]; then
+    echo "$MESSAGES"
 fi
 
