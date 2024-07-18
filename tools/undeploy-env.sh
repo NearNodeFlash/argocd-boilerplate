@@ -106,13 +106,6 @@ _delete_manifest() {
     local APP_YAML="$1"
     local MODE="$2"
 
-    # Stop if this Application is still active.
-    app_name=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["metadata"]["name"])' < "$APP_YAML")
-    if kubectl get application -n argocd "$app_name" 1>/dev/null 2>&1 ; then
-        echo "Stopping at active Application resource $app_name."
-        exit 1
-    fi
-
     # Find the path to the service this Application resource controls.
     svc_path=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["spec"]["source"]["path"])' < "$APP_YAML")
     if [[ ! -d $svc_path ]]; then
@@ -125,16 +118,45 @@ _delete_manifest() {
     KDEL="kubectl delete --ignore-not-found=true -f-"
     if [[ -n $DRYRUN ]]; then
         local filter
+        local prefilter
         if [[ $MODE == no_crds ]]; then
             filter="| filter-out-crds "
+        else
+            prefilter="resource-checker && "
         fi
-        echo "$KBUILD $svc_path $filter| $KDEL"
+        echo "$prefilter$KBUILD $svc_path $filter| $KDEL"
         return
+    fi
+
+    # Stop if this Application is still active.
+    app_name=$(python3 -c 'import yaml, sys; doc = yaml.safe_load(sys.stdin); print(doc["metadata"]["name"])' < "$APP_YAML")
+    if kubectl get application -n argocd "$app_name" 1>/dev/null 2>&1 ; then
+        echo "Stopping at active Application resource $app_name."
+        exit 1
     fi
 
     if [[ $MODE == no_crds ]]; then
         $KBUILD "$svc_path" | python3 -c 'import yaml, sys; docs=yaml.safe_load_all(sys.stdin); _ = [print("%s---" % yaml.dump(doc)) for doc in docs if doc["kind"] != "CustomResourceDefinition"]' | $KDEL
     else
+        local kind
+        local check_kinds
+        local must_clean=false
+        case $(basename "$svc_path") in
+        dws|nnf-sos|nnf-dm|lustre-fs-operator)
+            check_kinds="Workflows PersistentStorageInstances" ;;
+        esac
+
+        for kind in $check_kinds; do
+            if [[ $(kubectl get "$kind" -A --no-headers 2>/dev/null | wc -l) -gt 0 ]]; then
+                echo
+                echo "$kind must be cleaned up before the related CRDs can be removed:"
+                kubectl get "$kind" -A
+                echo
+                must_clean=true
+            fi
+        done
+        [[ $must_clean == true ]] && exit 1
+
         $KBUILD "$svc_path" | $KDEL
     fi
 }
