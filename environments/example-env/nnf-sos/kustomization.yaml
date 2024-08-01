@@ -12,6 +12,7 @@ resources:
 # The following are cluster-specific and are not touched by unpack-manifest.
 - systemconfiguration.yaml
 - default-nnfstorageprofile.yaml
+- default-nnfdatamovementprofile.yaml
 
 components:
 - ../components/container-locations
