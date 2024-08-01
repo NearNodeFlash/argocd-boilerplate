@@ -75,49 +75,84 @@ fi
 [[ -n $DRYRUN ]] && exit 0
 
 REFERENCES_DIR="environments/$ENV/nnf-sos/reference"
+
+# NnfStorageProfiles
 DEFAULT_PROF="environments/$ENV/nnf-sos/default-nnfstorageprofile.yaml"
 TEMPLATE_PROF="$REFERENCES_DIR/template-nnfstorageprofile.yaml"
 TEMPLATE_IS_UPDATED=
 
-# extract_template_nnfstorageprofile extracts and saves a copy of the
-# NnfStorageProfile/template resource.
-function extract_template_nnfstorageprofile {
+# NnfDataMovementProfiles
+DM_DEFAULT_PROF="environments/$ENV/nnf-sos/default-nnfdatamovementprofile.yaml"
+DM_TEMPLATE_PROF="$REFERENCES_DIR/template-nnfdatamovementprofile.yaml"
+DM_TEMPLATE_IS_UPDATED=
+
+# extract_template_nnfprofile extracts and saves a copy of the Nnf<type>Profile/template resource.
+function extract_template_nnfprofile {
     local sos_examples="environments/$ENV/nnf-sos/nnf-sos-examples.yaml"
+    local type=$1
+    local def_prof=
+    local temp_prof=
+
+    # Set the right variables based on which type: NnfStorageProfile or NnfDataMovementProfile
+    if [[ "$type" == "Storage" ]]; then
+        def_prof=$DEFAULT_PROF
+        temp_prof=$TEMPLATE_PROF
+    else
+        def_prof=$DM_DEFAULT_PROF
+        temp_prof=$DM_TEMPLATE_PROF
+    fi
 
     mkdir -p "$REFERENCES_DIR" || exit 1
 
     # Wishing for yq(1)...
-    if ! python3 - "$sos_examples" <<END > "$TEMPLATE_PROF"
+    if ! python3 - "$sos_examples" <<END > "$temp_prof"
 import yaml, sys
 with open(sys.argv[1], 'r') as file:
     docs = yaml.safe_load_all(file)
     for doc in docs:
-        if doc['kind'] == 'NnfStorageProfile' and doc['metadata']['name'] == 'template':
+        if doc['kind'] == 'Nnf${type}Profile' and doc['metadata']['name'] == 'template':
             print(yaml.dump(doc))
             break
 END
     then
-        echo "Unable to extract NnfStorageProfile/template: $TEMPLATE_PROF"
+        echo "Unable to extract Nnf${type}Profile/template: $temp_prof"
         exit 1
     fi
 
     # Have we updated an existing NnfStorageProfile/template?
-    if out=$(git diff "$TEMPLATE_PROF" 2> /dev/null); then
-        [[ -n $out ]] && TEMPLATE_IS_UPDATED=yes
+    if out=$(git diff "$temp_prof" 2> /dev/null); then
+        if [[ "$type" == "Storage" ]]; then
+            [[ -n $out ]] && TEMPLATE_IS_UPDATED=yes
+        else
+            [[ -n $out ]] && DM_TEMPLATE_IS_UPDATED=yes
+        fi
     fi
     true # Don't let the if-block above return a failure to our caller.
 }
 
-# default_nnfstorageprofile creates NnfStorageProfile/default from
-# NnfStorageProfile/template, making the new resource the default profile.
-function default_nnfstorageprofile {
+# default_nnfstorageprofile creates Nnf<type>Profile/default from Nnf<type>Profile/template, making
+# the new resource the default profile.
+function default_nnfprofile {
+    local type=$1
+    local def_prof=
+    local temp_prof=
+
+    # Set the right variables based on which type: NnfStorageProfile or NnfDataMovementProfile
+    if [[ "$type" == "Storage" ]]; then
+        def_prof=$DEFAULT_PROF
+        temp_prof=$TEMPLATE_PROF
+    else
+        def_prof=$DM_DEFAULT_PROF
+        temp_prof=$DM_TEMPLATE_PROF
+    fi
+
     # Wishing for yq(1)...
-    if ! python3 - "$TEMPLATE_PROF" <<END > "$DEFAULT_PROF"
+    if ! python3 - "$temp_prof" <<END > "$def_prof"
 import yaml, sys
 with open(sys.argv[1], 'r') as file:
     doc = yaml.safe_load(file)
-    if doc['kind'] != 'NnfStorageProfile' or doc['metadata']['name'] != 'template':
-        print("Unexpected content in $TEMPLATE_PROF", file=sys.stderr)
+    if doc['kind'] != 'Nnf${type}Profile' or doc['metadata']['name'] != 'template':
+        print("Unexpected content in $temp_prof", file=sys.stderr)
         sys.exit(1)
     doc['data']['default'] = True
     ns = doc['metadata']['namespace']
@@ -126,27 +161,41 @@ with open(sys.argv[1], 'r') as file:
     print(yaml.dump(doc))
 END
     then
-        echo "Unable to create default NnfStorageProfile: $DEFAULT_PROF"
+        echo "Unable to create default Nnf${type}Profile: $def_prof"
         exit 1
     fi
 }
 
-# Extract the new NnfStorageProfile/template and save it so it's easy to
-# see whether it had any updates in this manifest.
-extract_template_nnfstorageprofile
+# Extract the new Nnf[Storage|DataMovement]Profile/template and save it so it's easy to see whether
+# it had any updates in this manifest.
+extract_template_nnfprofile "Storage"
+extract_template_nnfprofile "DataMovement"
 
 unset MESSAGES
 message_count=0
 
 # Create NnfStorageProfile/default only if it does not already exist.
 if [[ ! -f $DEFAULT_PROF ]]; then
-    default_nnfstorageprofile
+    default_nnfprofile "Storage"
 elif [[ -n $TEMPLATE_IS_UPDATED ]]; then
     (( message_count = message_count + 1 ))
     MESSAGES="$MESSAGES
 NOTE $message_count:
   Inspect the changes to $TEMPLATE_PROF
   for any updates that you may need to add to $DEFAULT_PROF.
+
+"
+fi
+
+# Create NnfDataMovementProfile/default only if it does not already exist.
+if [[ ! -f $DM_DEFAULT_PROF ]]; then
+    default_nnfprofile "DataMovement"
+elif [[ -n $DM_TEMPLATE_IS_UPDATED ]]; then
+    (( message_count = message_count + 1 ))
+    MESSAGES="$MESSAGES
+NOTE $message_count:
+  Inspect the changes to $DM_TEMPLATE_PROF
+  for any updates that you may need to add to $DM_DEFAULT_PROF.
 
 "
 fi
