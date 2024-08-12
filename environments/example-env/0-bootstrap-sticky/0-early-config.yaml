@@ -2,23 +2,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 1-global-lustre
+  name: 0-early-config
   # The namespace that argocd is using.
   namespace: argocd
-  # The finalizer will cause global-lustre to be deleted before this Application
+  # The finalizer will cause early configs to be deleted before this Application
   # resource is deleted.
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: rabbit
+  # NOTE: Using 'default' project so this can be left in place even when
+  # the AppProject/rabbit resource is undeployed.
+  project: default
   source:
     repoURL: GITOPS_REPO
     targetRevision: HEAD
-    path: environments/STAGING_EXAMPLE/global-lustre
+    path: environments/STAGING_EXAMPLE/early-config
   destination:
     # When deploying internally (to the same cluster ArgoCD is running on)
     server: https://kubernetes.default.svc
-    namespace: default
   syncPolicy:
     automated:
       prune: true
@@ -26,21 +27,9 @@ spec:
       allowEmpty: false
     syncOptions:
       - Validate=true
-      - CreateNamespace=false
       - PrunePropagationPolicy=foreground
       - PruneLast=true
-
-  # Because the lustre-fs-operator and nnf-dm reconcilers are updating the LustreFileSystem.
   ignoreDifferences:
-  - group: lus.cray.hpe.com
-    kind: LustreFileSystem
+    kind: ConfigMap
     jsonPointers:
-    - /spec/namespaces
-    - /spec/storageClassName
-
-  # Because the nnf-sos reconcilers are updating the NnfLustreMGT claimList.
-  - group: nnf.cray.hpe.com
-    kind: NnfLustreMGT
-    jsonPointers:
-    - /spec/claimList
-
+    - /data
