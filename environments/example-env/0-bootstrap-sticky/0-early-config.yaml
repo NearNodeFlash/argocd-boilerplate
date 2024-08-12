@@ -29,7 +29,13 @@ spec:
       - Validate=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
+
+  # The ConfigMap for external NnfLustreMgt tracking.
+  # Replace "lushtx" with the metadata.name from your global lustre
+  # `LustreFileSystem` resource, which you've defined in
+  # `environments/$ENV/global-lustre`.
   ignoreDifferences:
-    kind: ConfigMap
-    jsonPointers:
-    - /data
+    - kind: ConfigMap
+      name: lushtx
+      jsonPointers:
+      - /data
