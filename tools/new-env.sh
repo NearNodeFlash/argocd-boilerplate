@@ -51,7 +51,8 @@ fi
 if [[ -z $REPO_URL ]]; then
     echo "You must specify -r"
     exit 1
-elif [[ $REPO_URL != +(http*|git*) ]]; then
+# This next http/git test works in the old bash v3 for Mac, as well as newer bash.
+elif [[ $REPO_URL != http* ]] && [[ $REPO_URL != git* ]]; then
     echo "The repo url must be an http or https URL."
     exit 1
 fi
