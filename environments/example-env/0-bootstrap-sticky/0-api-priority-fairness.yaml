@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 0-api-priority-fairness
+  # The namespace that argocd is using.
+  namespace: argocd
+  # The finalizer will cause APF to be deleted before this Application
+  # resource is deleted.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # NOTE: Using 'default' project so this can be left in place even when
+  # the AppProject/rabbit resource is undeployed.
+  project: default
+  source:
+    repoURL: GITOPS_REPO
+    targetRevision: HEAD
+    path: environments/STAGING_EXAMPLE/api-priority-fairness
+  destination:
+    # When deploying internally (to the same cluster ArgoCD is running on)
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+
