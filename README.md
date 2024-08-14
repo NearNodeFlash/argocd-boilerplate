@@ -114,8 +114,7 @@ git push
 ```
 
 Finally, confirm that the manifests hook up properly with Kustomize (see
-"Debugging manifests with Kustomize" below) and push the changes to the gitops
-repository.
+"Debugging manifests with Kustomize" below) by running `tools/verify-deployment.sh` and push the changes to the gitops repository.
 
 ### To get a manifest from nnf-deploy's master branch
 
@@ -212,13 +211,10 @@ For "private" GitHub repos (as opposed to "personal" GitHub repos), a "classic" 
 
 ## Debugging manifests with Kustomize
 
-After a change to a manifest or kustomization file inspect the result for correctness
-by running kustomize on its containing directory.
+After a change to a manifest or kustomization file inspect the result for correctness by running `tools/verify-deployment.sh`. This will run kustomize on all bootstrap and manifest components for the specified environment.
 
 ```bash
-make kustomize
-bin/kustomize build environments/example-env/0-bootstrap
-bin/kustomize build environments/example-env/dws
+tools/verify-deployment.sh -e us-east-1
 ```
 
 ## Installing ArgoCD via Helm Chart
