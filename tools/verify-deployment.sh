@@ -46,7 +46,6 @@ fi
 LC_ALL=C
 
 set -e
-set -o pipefail
 
 make kustomize || exit 1
 
@@ -67,9 +66,10 @@ do
 
     for application in "$bootstrap"/*.yaml
     do
+        [[ $application == */kustomization.yaml ]] && continue
         path=$(grep ' path: ' "$application" 2>/dev/null | awk '{print $2}') || continue
+        [[ -z $path ]] && continue
         echo "  Verify: $path"
         kustomize_build "$path"
     done
 done
-
