@@ -71,6 +71,11 @@ if ! $DBG tar xfo "$MANIFEST" -C environments/"$ENV"; then
     echo "Unable to unpack the manifests"
     exit 1
 fi
+TOC="environments/$ENV/manifest-toc.txt"
+if ! tar tf "$MANIFEST" | sed "s/^\./environments\/$ENV/" | grep -v -E '\/$' > "$TOC"; then
+    echo "Unable to extract and save the manifest table of contents"
+    exit 1
+fi
 
 [[ -n $DRYRUN ]] && exit 0
 
@@ -218,6 +223,14 @@ $crds
 "
     fi
 fi
+
+# Remind the user to run the verification tool.
+(( message_count = message_count + 1 ))
+MESSAGES="$MESSAGES
+NOTE $message_count:
+  Run 'tools/verify-deployment'.
+
+"
 
 if [[ -n $MESSAGES ]]; then
     echo "$MESSAGES"
