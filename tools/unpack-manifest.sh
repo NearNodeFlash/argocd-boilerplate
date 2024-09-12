@@ -215,7 +215,7 @@ NOTE $message_count:
   workflows from the Rabbit cluster and undeploy the Rabbit
   software from the cluster by removing the ArgoCD Application
   resources (the bootstrap resources).
-  Consult 'tools/undeploy-env -C' to remove all Rabbit software
+  Consult 'tools/undeploy-env.sh -C' to remove all Rabbit software
   CRDs from the cluster.
 
 $crds
@@ -228,7 +228,7 @@ fi
 (( message_count = message_count + 1 ))
 MESSAGES="$MESSAGES
 NOTE $message_count:
-  Run 'tools/verify-deployment'.
+  Run 'tools/verify-deployment.sh'.
 
 "
 
