@@ -67,9 +67,19 @@ DBG=
 set -e
 set -o pipefail
 
+PREVIOUS_RELEASE=
+NEW_RELEASE=
+UPGRADE_TYPE=
+
+if [[ -f environments/$ENV/manifest-release.txt ]]; then
+    PREVIOUS_RELEASE=$(<environments/"$ENV"/manifest-release.txt)
+fi
 if ! $DBG tar xfo "$MANIFEST" -C environments/"$ENV"; then
     echo "Unable to unpack the manifests"
     exit 1
+fi
+if [[ -f environments/$ENV/manifest-release.txt ]]; then
+    NEW_RELEASE=$(<environments/"$ENV"/manifest-release.txt)
 fi
 TOC="environments/$ENV/manifest-toc.txt"
 if ! tar tf "$MANIFEST" | sed "s/^\./environments\/$ENV/" | grep -v -E '\/$' > "$TOC"; then
@@ -90,6 +100,20 @@ TEMPLATE_IS_UPDATED=
 DM_DEFAULT_PROF="environments/$ENV/nnf-sos/default-nnfdatamovementprofile.yaml"
 DM_TEMPLATE_PROF="$REFERENCES_DIR/template-nnfdatamovementprofile.yaml"
 DM_TEMPLATE_IS_UPDATED=
+
+# Characterize the type of upgrade that is happening. Does it look like a
+# release-to-release upgrade, or is it something less structured?
+function determine_upgrade_type {
+    # Do we have enough info to decide?
+    [[ -z $PREVIOUS_RELEASE || -z $NEW_RELEASE ]] && return
+
+    # Does it look like dev-to-dev, or release-to-dev, or dev-to-release?
+    [[ $PREVIOUS_RELEASE == *0.0.0* || $PREVIOUS_RELEASE == *-dirty* ]] && return
+    [[ $NEW_RELEASE == *0.0.0* || $NEW_RELEASE == *-dirty* ]] && return
+
+    # Then it looks like release-to-release.
+    UPGRADE_TYPE=release-to-release
+}
 
 # extract_template_nnfprofile extracts and saves a copy of the Nnf<type>Profile/template resource.
 function extract_template_nnfprofile {
@@ -171,10 +195,13 @@ END
     fi
 }
 
-# Extract the new Nnf[Storage|DataMovement]Profile/template and save it so it's easy to see whether
-# it had any updates in this manifest.
+# Extract the new Nnf[Storage|DataMovement]Profile/template and save it so
+# it's easy to see whether it had any updates in this manifest.
 extract_template_nnfprofile "Storage"
 extract_template_nnfprofile "DataMovement"
+
+# What kind of upgrade does this appear to be?
+determine_upgrade_type
 
 unset MESSAGES
 message_count=0
@@ -206,10 +233,22 @@ NOTE $message_count:
 fi
 
 if crds=$(git status "environments/$ENV" | grep -E '\-crds.yaml$'); then
-    if [[ -n $crds ]]; then
+    if [[ -n $crds && $UPGRADE_TYPE == release-to-release ]]; then
         (( message_count = message_count + 1 ))
         MESSAGES="$MESSAGES
 NOTE $message_count:
+  **This looks like a release-to-release upgrade.**
+  This release includes some CRD changes. However, because this
+  appears to be a release-to-release upgrade, it should not be
+  necessary to remove all jobs and workflows or to undeploy the
+  existing Rabbit software from the cluster.
+
+"
+    elif [[ -n $crds ]]; then
+        (( message_count = message_count + 1 ))
+        MESSAGES="$MESSAGES
+NOTE $message_count:
+  **This does NOT look like a release-to-release upgrade.**
   The following manifests show CRD changes. Before pushing these
   changes to your gitops repo you should remove all jobs and
   workflows from the Rabbit cluster and undeploy the Rabbit
