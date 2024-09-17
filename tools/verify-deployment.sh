@@ -123,5 +123,6 @@ if [[ -n $FILES_NEEDING_APIVER ]]; then
         done
         echo
     fi
+    exit 1
 fi
 
