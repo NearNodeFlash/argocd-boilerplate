@@ -81,11 +81,11 @@ remove_finalizers() {
     done
 }
 
-CRDS="argocdextensions applications appprojects"
+CRDS="argocdextensions applications appprojects applicationsets"
 
 delete_crds() {
     for crd in $CRDS; do
-        kubectl delete crd "$crd.argoproj.io"
+        kubectl delete crd "$crd.argoproj.io" || true
     done
 }
 
@@ -109,11 +109,22 @@ check_crds() {
     done
 }
 
+delete_configmaps() {
+    cmaps=$(kubectl get cm -n argocd --no-headers -o custom-columns=NAME:.metadata.name)
+
+    for cm in $cmaps; do
+        echo "Removing configmap $cm"
+        kubectl delete cm -n argocd "$cm" || true
+    done
+}
+
+
 uninstall_chart
 wait_for_pods
 remove_finalizers
 delete_crds
 check_crds
+delete_configmaps
 
 echo
 echo "ArgoCD, and its resources and CRDs, has been removed."
