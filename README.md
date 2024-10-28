@@ -306,7 +306,7 @@ and point your browser
 at localhost:8080 and use the 'admin' user with the password obtained above.
 
 ```bash
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+kubectl port-forward svc/nnf-argocd-server -n argocd 8080:443
 ```
 
 ## Add Gitops Repo to ArgoCD
