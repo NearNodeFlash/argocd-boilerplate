@@ -1,0 +1,22 @@
+# Add Volume
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: core-dumps
+    hostPath:
+      path: /localdisk/dumps
+      type: DirectoryOrCreate
+
+# Add VolumeMount to existing worker container's VolumeMounts
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts/-
+  value:
+    mountPath: /localdisk/dumps
+    name: core-dumps
+
+# Add VolumeMount to manager container (does not currently have VolumeMounts)
+- op: add
+  path: /spec/template/spec/containers/1/volumeMounts
+  value:
+    - mountPath: /localdisk/dumps
+      name: core-dumps
