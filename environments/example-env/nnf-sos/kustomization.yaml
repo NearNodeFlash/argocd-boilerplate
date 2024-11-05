@@ -13,6 +13,7 @@ resources:
 - systemconfiguration.yaml
 - default-nnfstorageprofile.yaml
 - default-nnfdatamovementprofile.yaml
+- lvmlockd-profiles.yaml
 
 components:
 - ../components/container-locations
