@@ -29,11 +29,6 @@ spec:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
-
-      # Nnf-sos has a large manifest due to the size of the
-      # nnfcontainerprofile CRD and the SystemConfiguration resource.
-      - ServerSideApply=true
-
   ignoreDifferences:
   - group: nnf.cray.hpe.com
     kind: NnfPortManager
