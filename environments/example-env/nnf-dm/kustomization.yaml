@@ -10,3 +10,17 @@ resources:
 components:
 - ../components/container-locations
 - ../../universal/container-locations
+
+patches:
+- target:
+    group: nnf.cray.hpe.com
+    kind: NnfDataMovementManager
+    name: nnf-dm-manager-controller-manager
+    namespace: nnf-dm-system
+  path: dm-manager-coredumps.yaml
+- target:
+    kind: Deployment
+    name: nnf-dm-manager-controller-manager
+    namespace: nnf-dm-system
+  path: dm-controller-coredumps.yaml
+
