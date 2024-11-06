@@ -15,6 +15,37 @@ resources:
 - default-nnfdatamovementprofile.yaml
 - lvmlockd-profiles.yaml
 
+patches:
+- target:
+    kind: CustomResourceDefinition
+    name: nnfdatamovementmanagers.nnf.cray.hpe.com
+  patch: |-
+    kind: CustomResourceDefinition
+    metadata:
+      name: nnfdatamovementmanagers.nnf.cray.hpe.com
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+- target:
+    kind: CustomResourceDefinition
+    name: nnfcontainerprofiles.nnf.cray.hpe.com
+  patch: |-
+    kind: CustomResourceDefinition
+    metadata:
+      name: nnfcontainerprofiles.nnf.cray.hpe.com
+      annotations:
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+- target:
+    kind: SystemConfiguration
+    name: default
+    namespace: default
+  patch: |-
+    kind: SystemConfiguration
+    metadata:
+      name: default
+      annotations:
+        # Because on some systems this resource can be quite large.
+        argocd.argoproj.io/sync-options: ServerSideApply=true
+
 components:
 - ../components/container-locations
 - ../../universal/container-locations
