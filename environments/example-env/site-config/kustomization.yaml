@@ -4,3 +4,4 @@ kind: Kustomization
 
 resources:
 - mgt-pool-member-nnfstorageprofile.yaml
+- lvmlock-systemstorage.yaml

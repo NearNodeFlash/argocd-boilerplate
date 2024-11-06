@@ -5,7 +5,7 @@ metadata:
   name: 1-site-config
   namespace: argocd
   finalizers:
-    - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io/background
 spec:
   project: rabbit
   source:

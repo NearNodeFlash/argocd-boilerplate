@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: systemstorage
+  annotations:
+    argocd.argoproj.io/sync-options: Delete=false
+---
+# Place your NnfSystemStorage resources here.
+# The matching NnfStorageProfiles should be placed in:
+#   environments/$ENV/nnf-sos/lvmlockd-profiles.yaml
+# See: https://nearnodeflash.github.io/latest/guides/system-storage/readme/
+

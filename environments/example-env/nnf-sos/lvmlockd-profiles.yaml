@@ -1,0 +1,5 @@
+# This file contains the NnfStorageProfile resources that are used by
+# NnfSystemStorages.  The NnfSystemStorage resources are placed in:
+#   environments/$ENV/site-config/lvmlock-systemstorage.yaml
+# See: https://nearnodeflash.github.io/latest/guides/system-storage/readme/
+
