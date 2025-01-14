@@ -98,15 +98,17 @@ TARFILES=/tmp/manifests-$TAG
 gh release download -D $TARFILES $TAG
 ```
 
-Use `tools/unpack-manifest.sh` to unpack the manifest overlay in the gitops repo:
+Use `tools/unpack-manifest.py` to unpack the manifest overlay in the gitops repo:
 
 ```bash
 cd site-gitops
 ```
 
 ```bash
-tools/unpack-manifest.sh -e us-east-1 -m $TARFILES/manifests.tar
+tools/unpack-manifest.py -e us-east-1 -m $TARFILES/manifests.tar
 ```
+
+Address any issue that the tool may have displayed as a **NOTE**, then verify that the changes are correct by executing `tools/verify-deployment.sh` and commit them:
 
 ```bash
 git commit -m "Apply manifests for release $TAG"
@@ -125,7 +127,7 @@ make manifests
 
 ```bash
 cd site-gitops
-./tools/unpack-manifest.sh -e kind -m ../nnf-deploy/manifests-kind.tar
+./tools/unpack-manifest.py -e kind -m ../nnf-deploy/manifests-kind.tar
 ```
 
 ### Deploy bootstraps
@@ -167,10 +169,10 @@ Upgrade the manifests for an existing environment by unpacking the new manifests
 
 ```bash
 cd site-gitops
-tools/unpack-manifest.sh -e us-east-1 -m $NEW_TARFILE
+tools/unpack-manifest.py -e us-east-1 -m $NEW_TARFILE
 ```
 
-Verify that the changes are correct and commit them:
+Address any issue that the tool may have displayed as a **NOTE**, then verify that the changes are correct by executing `tools/verify-deployment.sh` and commit them:
 
 ```bash
 git status
