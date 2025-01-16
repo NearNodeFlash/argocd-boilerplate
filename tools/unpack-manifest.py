@@ -164,8 +164,9 @@ def find_and_extract_template_resources(args, env_dir, component, messages):
     def create_default_resource(doc, name_of_default, default_prof_base, default_prof):
         # Given a template, create its default.
         with open(default_prof, "w", encoding="utf-8") as fd:
-            if "data" in doc and "default" in doc["data"]:
-                doc["data"]["default"] = True
+            if doc["metadata"]["name"] == "default":
+                if "data" in doc and "default" in doc["data"]:
+                    doc["data"]["default"] = True
             ns = doc["metadata"]["namespace"]
             del doc["metadata"]
             doc["metadata"] = {"name": name_of_default, "namespace": ns}
