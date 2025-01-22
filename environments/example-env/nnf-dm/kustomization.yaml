@@ -22,11 +22,3 @@ patches:
     kind: NnfDataMovementManager
     name: nnf-dm-manager-controller-manager
     namespace: nnf-dm-system
-
-
-  # Use images with mpifileutils/mpirun debug symbols
-images:
-- name: ghcr.io/nearnodeflash/nnf-dm
-  newName: ghcr.io/nearnodeflash/nnf-dm-debug
-- name: ghcr.io/nearnodeflash/nnf-mfu
-  newName: ghcr.io/nearnodeflash/nnf-mfu-debug

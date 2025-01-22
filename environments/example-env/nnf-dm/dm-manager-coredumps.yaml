@@ -1,4 +1,4 @@
-# Being a CRD, we cannot use a regular patch to add volumes - it will wipe out the entire container
+# Being a CR, we cannot use a regular patch to add volumes - it will wipe out the entire container
 # spec. We must use JSON patches to patch a CRD.
 
 # Add Volume to existing volumes (a hyphen must be used)
