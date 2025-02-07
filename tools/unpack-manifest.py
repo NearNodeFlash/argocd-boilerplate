@@ -219,7 +219,7 @@ def find_and_extract_template_resources(args, env_dir, component, messages):
             if name == "template":
                 name_of_default = "default"
             elif name.endswith("-template"):
-                name_of_default = f"{name.removesuffix("-template")}-default"
+                name_of_default = f"{name.removesuffix('-template')}-default"
 
             if name_of_default is not None:
                 extract_template(doc, name, name_of_default)
