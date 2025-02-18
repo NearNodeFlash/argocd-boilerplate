@@ -140,7 +140,7 @@ def check_for_crd_updates(args, env_dir, upgrade_type, messages):
   Consult 'tools/undeploy-env.sh -C' to remove all Rabbit software
   CRDs from the cluster.
 
-  {"  ".join(crds)}"""
+  {"\n".join(crds)}"""
         )
 
 

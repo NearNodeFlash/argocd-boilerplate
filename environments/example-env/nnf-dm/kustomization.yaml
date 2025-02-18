@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
 - nnf-dm-crds.yaml
 - nnf-dm.yaml
+- nnf-dm-examples.yaml
 #- nnf-dm-prometheus.yaml
 
 components:
