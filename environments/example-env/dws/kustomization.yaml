@@ -9,3 +9,16 @@ resources:
 
 components:
 - ../../universal/container-locations
+
+patches:
+- target:
+    kind: Deployment
+    name: dws-webhook
+    namespace: dws-system
+  patch: |-
+    kind: Deployment
+    metadata:
+      name: dws-webhook
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true,PruneLast=false,Force=true
+
