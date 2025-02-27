@@ -10,7 +10,6 @@ resources:
 #- nnf-sos-prometheus.yaml
 
 # The following are cluster-specific and are not touched by unpack-manifest.
-- systemconfiguration.yaml
 - default-nnfstorageprofile.yaml
 - default-nnfdatamovementprofile.yaml
 - lvmlockd-profiles.yaml
@@ -33,17 +32,6 @@ patches:
     metadata:
       name: nnfcontainerprofiles.nnf.cray.hpe.com
       annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
-- target:
-    kind: SystemConfiguration
-    name: default
-    namespace: default
-  patch: |-
-    kind: SystemConfiguration
-    metadata:
-      name: default
-      annotations:
-        # Because on some systems this resource can be quite large.
         argocd.argoproj.io/sync-options: ServerSideApply=true
 
 components:
