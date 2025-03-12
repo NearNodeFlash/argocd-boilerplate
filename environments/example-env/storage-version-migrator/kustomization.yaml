@@ -1,0 +1,28 @@
+resources:
+- namespace-rbac.yaml
+- trigger.yaml
+- migrator.yaml
+- storage_migration_crd.yaml
+- storage_state_crd.yaml
+
+images:
+#
+# Images built and tagged for NNF, found in
+# https://github.com/NearNodeFlash/kube-storage-version-migrator
+# See the 'nnf-main' and 'releases/v0' branches.
+#
+- name: ghcr.io/nearnodeflash/storage-version-migration-migrator
+  newName: ghcr.io/nearnodeflash/kube-storage-version-migrator
+- name: ghcr.io/nearnodeflash/storage-version-migration-trigger
+  newName: ghcr.io/nearnodeflash/kube-storage-version-trigger
+
+patches:
+- target:
+    kind: Namespace
+    name: kube-system
+  patch: |-
+    kind: Namespace
+    metadata:
+      name: kube-system
+      annotations:
+        argocd.argoproj.io/sync-options: Delete=false
