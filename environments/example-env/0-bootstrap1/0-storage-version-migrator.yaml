@@ -1,0 +1,30 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 0-storage-version-migrator
+  # The namespace that argocd is using.
+  namespace: argocd
+  # The finalizer will cause mpi-operator to be deleted before this Application
+  # resource is deleted.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: GITOPS_REPO
+    targetRevision: HEAD
+    path: environments/STAGING_EXAMPLE/storage-version-migrator
+  destination:
+    # When deploying internally (to the same cluster ArgoCD is running on)
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+
