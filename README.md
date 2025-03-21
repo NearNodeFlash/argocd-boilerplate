@@ -59,6 +59,10 @@ descending order. The services are assigned a bootstrap level based on their
 dependence on each other. In general, to undeploy and/or upgrade the services at
 a particular level the bootstraps for any higher levels must be undeployed.
 
+#### Adding new bootstraps
+
+When new bootstraps are added to `environments/example-env`, run `tools/verify-deployment.sh -e example-env` as a sanity check.
+
 #### Persistent grouping
 
 A bootstrap directory having a negative grouping value, such as `X-bootstrap-1`

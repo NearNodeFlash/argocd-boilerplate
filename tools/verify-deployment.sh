@@ -48,12 +48,19 @@ TOC="environments/$ENV/manifest-toc.txt"
 API_VERSION_FILES=
 FILES_NEEDING_APIVER=
 
+if [[ $ENV == "example-env" ]]; then
+    VERIFYING_EXAMPLE=1
+fi
+
 set -e
 
-make kustomize || exit 1
+if [[ -z $VERIFYING_EXAMPLE ]]; then
+    make kustomize || exit 1
+fi
 
 kustomize_build() {
     path="$1"
+    [[ -n $VERIFYING_EXAMPLE ]] && return
     if [[ -n $DRYRUN ]]
     then
         echo "bin/kustomize build $path"
@@ -106,11 +113,16 @@ do
             exit 1
         fi
         path=$(grep ' path: ' "$application" 2>/dev/null | awk '{print $2}') || continue
-        [[ -z $path ]] && continue
+        [[ -z $path || -n $VERIFYING_EXAMPLE ]] && continue
         echo "  Verify: $path"
         kustomize_build "$path"
     done
 done
+
+if [[ -n $VERIFYING_EXAMPLE ]]; then
+    echo "No further checks for example_env."
+    exit 0
+fi
 
 check_use_of_non_hub_api_versions
 if [[ -n $FILES_NEEDING_APIVER ]]; then
