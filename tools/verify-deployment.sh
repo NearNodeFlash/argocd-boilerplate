@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2024 Hewlett Packard Enterprise Development LP
+# Copyright 2024-2025 Hewlett Packard Enterprise Development LP
 # Other additional copyright holders may be indicated within.
 #
 # The entirety of this work is licensed under the Apache License,
@@ -100,6 +100,11 @@ do
     for application in "$bootstrap"/*.yaml
     do
         [[ $application == */kustomization.yaml ]] && continue
+        bname=$(basename "$application")
+        if ! grep -q "$bname" "$bootstrap/kustomization.yaml"; then
+            echo "  Resource $bname is not listed in kustomization.yaml"
+            exit 1
+        fi
         path=$(grep ' path: ' "$application" 2>/dev/null | awk '{print $2}') || continue
         [[ -z $path ]] && continue
         echo "  Verify: $path"
