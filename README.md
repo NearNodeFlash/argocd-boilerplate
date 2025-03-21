@@ -59,15 +59,17 @@ descending order. The services are assigned a bootstrap level based on their
 dependence on each other. In general, to undeploy and/or upgrade the services at
 a particular level the bootstraps for any higher levels must be undeployed.
 
-#### Adding new bootstraps
-
-When new bootstraps are added to `environments/example-env`, run `tools/verify-deployment.sh -e example-env` as a sanity check.
-
 #### Persistent grouping
 
 A bootstrap directory having a negative grouping value, such as `X-bootstrap-1`
 will be persistent; it will never be undeployed by the `tools/undeploy-env.sh`
 tool.
+
+#### Adding new bootstraps
+
+When new bootstraps are added to `environments/example-env`, run `tools/verify-deployment.sh -e example-env` as a sanity check.
+
+Use `tools/resync-env.sh` to merge the new bootstraps into existing environments. This tool searches `environments/example-env` and compares it to the given existing environment, copying missing bootstraps into the existing environment and customizing them for the environment.
 
 ### Populate the new environment in your gitops repo
 
