@@ -130,6 +130,7 @@ def check_for_crd_updates(args, env_dir, upgrade_type, messages):
   existing Rabbit software from the cluster."""
         )
     elif crd_update:
+        crd_display = "\n".join(crds)
         messages.append(
             f"""**This does NOT look like a release-to-release upgrade.**
   The following manifests show CRD changes. Before pushing these
@@ -140,7 +141,7 @@ def check_for_crd_updates(args, env_dir, upgrade_type, messages):
   Consult 'tools/undeploy-env.sh -C' to remove all Rabbit software
   CRDs from the cluster.
 
-  {"\n".join(crds)}"""
+  {crd_display}"""
         )
 
 
