@@ -5,3 +5,4 @@ kind: Kustomization
 resources:
 - 0-cert-mgr.yaml
 - 0-mpi-operator.yaml
+- 0-storage-version-migrator.yaml
