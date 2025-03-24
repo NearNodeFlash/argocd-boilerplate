@@ -26,7 +26,7 @@ e) ENV="$OPTARG" ;;
     echo 
     echo "Usage: $0 -e ENVIRONMENT"
     echo
-    echo "  -e ENVIRONMENT     Name existing environment to update."
+    echo "  -e ENVIRONMENT     Name of existing environment to update."
     exit 1
     ;;
 esac
