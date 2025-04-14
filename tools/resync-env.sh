@@ -101,6 +101,34 @@ kustomization_new_resource() {
     fi
 }
 
+cp_service_dir() {
+    local bootstrap="$1"
+    local source
+    local example_dir
+
+    if ! source=$(grep -E "    path: environments/$ENV/" "$bootstrap" | awk '{print $2}'); then
+        echo "Unable to parse source path from $bootstrap"
+        exit 1
+    fi
+    [[ -d "$source" ]] && return
+    example_dir=$(echo "$source" | sed -e "s/\/$ENV\//\/example-env\//")
+    [[ ! -d "$example_dir" ]] && return
+    echo "  Creating: $source"
+    cp -r "$example_dir" "$source"
+}
+
+cp_service_dirs() {
+    local bootstrapd="$1"
+    local apl
+    local bname
+
+    for apl in "$bootstrapd"/*.yaml
+    do
+        [[ $apl == */kustomization.yaml ]] && continue
+        cp_service_dir "$apl"
+    done
+}
+
 # Now look for new bootstraps.
 NEW_BOOTSTRAP=
 for example_bootstrap in environments/example-env/*bootstrap*
@@ -114,6 +142,7 @@ do
         echo "  Added: $dest"
         customize_bootstraps "$dest"
         NEW_BOOTSTRAP=1
+        cp_service_dirs "$dest"
     else
         # Look for new bootstraps in an existing bootstrap dir.
         for application in "$example_bootstrap"/*.yaml
@@ -132,6 +161,7 @@ do
                 customize_one_bootstrap "$dest"
                 kustomization_new_resource "$bname" "environments/$ENV/$bstrapbase/kustomization.yaml"
                 NEW_BOOTSTRAP=1
+                cp_service_dir "$dest"
             fi
         done
     fi
