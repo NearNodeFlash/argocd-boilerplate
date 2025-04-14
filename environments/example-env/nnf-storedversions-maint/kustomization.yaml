@@ -1,0 +1,13 @@
+resources:
+- nnf-storedversions-maint.yaml
+
+patches:
+- target:
+    kind: Namespace
+    name: nnf-storedversions-maint-system
+  patch: |-
+    kind: Namespace
+    metadata:
+      name: nnf-storedversions-maint-system
+      annotations:
+        argocd.argoproj.io/sync-options: Delete=false
