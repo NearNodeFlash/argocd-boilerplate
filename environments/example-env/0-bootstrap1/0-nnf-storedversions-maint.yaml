@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: 0-nnf-storedversions-maint.yaml
+  name: 0-nnf-storedversions-maint
   # The namespace that argocd is using.
   namespace: argocd
   # The finalizer will cause mpi-operator to be deleted before this Application
