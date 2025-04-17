@@ -1,9 +1,9 @@
-# Being a CR, we cannot use a regular patch to add volumes - it will wipe out the entire container
+# Being a CRD, we cannot use a regular patch to add volumes - it will wipe out the entire container
 # spec. We must use JSON patches to patch a CRD.
 
 # Add Volume to existing volumes (a hyphen must be used)
 - op: add
-  path: /spec/template/spec/volumes/-
+  path: /spec/podSpec/volumes/-
   value:
     name: core-dumps
     hostPath:
@@ -12,13 +12,13 @@
 
 # Add VolumeMount to existing worker container's VolumeMounts (hyphen)
 - op: add
-  path: /spec/template/spec/containers/0/volumeMounts/-
+  path: /spec/podSpec/containers/0/volumeMounts/-
   value:
     mountPath: /localdisk/dumps
     name: core-dumps
 # Add VolumeMount to existing manager container's VolumeMounts (hyphen)
 - op: add
-  path: /spec/template/spec/containers/1/volumeMounts/-
+  path: /spec/podSpec/containers/1/volumeMounts/-
   value:
     mountPath: /localdisk/dumps
     name: core-dumps
