@@ -98,7 +98,7 @@ done
 
 echo ""
 
-sysconfig_dest="environments/$ENV/nnf-sos/systemconfiguration.yaml"
+sysconfig_dest="environments/$ENV/site-config/systemconfiguration.yaml"
 if [[ -n $SYSCONFIG_PATH ]]; then
     cp "$SYSCONFIG_PATH" "$sysconfig_dest"
 else
