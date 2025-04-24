@@ -1,0 +1,6 @@
+apiVersion: dataworkflowservices.github.io/v1alpha4
+kind: SystemStatus
+metadata:
+  name: default
+  namespace: default
+

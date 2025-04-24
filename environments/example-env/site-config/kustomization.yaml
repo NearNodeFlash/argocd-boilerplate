@@ -6,6 +6,7 @@ resources:
 - systemconfiguration.yaml
 - mgt-pool-member-nnfstorageprofile.yaml
 - lvmlock-systemstorage.yaml
+- systemstatus.yaml
 
 patches:
 - target:
