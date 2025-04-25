@@ -24,3 +24,8 @@ spec:
       - CreateNamespace=false
       - PrunePropagationPolicy=foreground
       - PruneLast=true
+  ignoreDifferences:
+    - kind: SystemStatus
+      name: default
+      jsonPointers:
+      - /data
