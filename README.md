@@ -54,16 +54,12 @@ and in this case it applies the ArgoCD AppProject resource that creates the
 "Rabbit" project. The remaining bootstrap resources are ArgoCD Application
 resources.
 
-The bootstrap levels are deployed in ascending order and undeployed in
-descending order. The services are assigned a bootstrap level based on their
-dependence on each other. In general, to undeploy and/or upgrade the services at
-a particular level the bootstraps for any higher levels must be undeployed.
+The bootstrap levels are deployed in ascending order. The services are assigned a bootstrap level based on their dependence on each other.
 
 #### Persistent grouping
 
 A bootstrap directory having a negative grouping value, such as `X-bootstrap-1`
-will be persistent; it will never be undeployed by the `tools/undeploy-env.sh`
-tool.
+will be persistent.
 
 #### Adding new bootstraps
 
@@ -146,23 +142,6 @@ a dry-run or for controlling the highest level of bootstrap to be deployed:
 
 ```bash
 tools/deploy-env.sh -e us-east-1
-```
-
-### Undeploy bootstraps
-
-Use `tools/undeploy-env.sh` to easily undeploy the bootstrap resources. You can
-also use the ArgoCD CLI or GUI to delete the Application resources; it is not
-necessary to use the undeploy tool.
-
-The following will undeploy all levels of bootstrap resources for
-our new environment beginning at the highest level and stopping before reaching
-level 0. See the command's help output for enabling a dry-run or for
-controlling the lowest bootstrap level to be undeployed.
-
-**Note** The default behavior does not undeploy level 0.
-
-```bash
-tools/undeploy-env.sh -e us-east-1
 ```
 
 ## Upgrade manifests in an existing environment
