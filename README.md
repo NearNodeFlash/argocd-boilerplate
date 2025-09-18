@@ -63,7 +63,7 @@ will be persistent.
 
 #### Adding new bootstraps
 
-When new bootstraps are added to `environments/example-env`, run `tools/verify-deployment.sh -e example-env` as a sanity check.
+When new bootstraps are added to `environments/example-env`, run `tools/verify-deployment.py -e example-env` as a sanity check.
 
 Use `tools/resync-env.sh` to merge the new bootstraps into existing environments. This tool searches `environments/example-env` and compares it to the given existing environment, copying missing bootstraps into the existing environment and customizing them for the environment.
 
@@ -110,7 +110,7 @@ cd site-gitops
 tools/unpack-manifest.py -e us-east-1 -m $TARFILES/manifests.tar
 ```
 
-Address any issue that the tool may have displayed as a **NOTE**, then verify that the changes are correct by executing `tools/verify-deployment.sh` and commit them:
+Address any issue that the tool may have displayed as a **NOTE**, then verify that the changes are correct by executing `tools/verify-deployment.py` and commit them:
 
 ```bash
 git commit -m "Apply manifests for release $TAG"
@@ -118,7 +118,7 @@ git push
 ```
 
 Finally, confirm that the manifests hook up properly with Kustomize (see
-"Debugging manifests with Kustomize" below) by running `tools/verify-deployment.sh` and push the changes to the gitops repository.
+"Debugging manifests with Kustomize" below) by running `tools/verify-deployment.py` and push the changes to the gitops repository.
 
 ### To get a manifest from nnf-deploy's master branch
 
@@ -157,7 +157,7 @@ cd site-gitops
 tools/unpack-manifest.py -e us-east-1 -m $NEW_TARFILE
 ```
 
-Address any issue that the tool may have displayed as a **NOTE**, then verify that the changes are correct by executing `tools/verify-deployment.sh` and commit them:
+Address any issue that the tool may have displayed as a **NOTE**, then verify that the changes are correct by executing `tools/verify-deployment.py` and commit them:
 
 ```bash
 git status
@@ -198,10 +198,10 @@ For "private" GitHub repos (as opposed to "personal" GitHub repos), a "classic" 
 
 ## Debugging manifests with Kustomize
 
-After a change to a manifest or kustomization file inspect the result for correctness by running `tools/verify-deployment.sh`. This will run kustomize on all bootstrap and manifest components for the specified environment.
+After a change to a manifest or kustomization file inspect the result for correctness by running `tools/verify-deployment.py`. This will run kustomize on all bootstrap and manifest components for the specified environment.
 
 ```bash
-tools/verify-deployment.sh -e us-east-1
+tools/verify-deployment.py -e us-east-1
 ```
 
 ## Installing ArgoCD via Helm Chart
