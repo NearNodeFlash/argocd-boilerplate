@@ -81,7 +81,7 @@ def main():
     check_for_crd_updates(args, env_dir, upgrade_type, messages)
 
     # Last message: Remind the user to run the verification tool.
-    messages.append("Run 'tools/verify-deployment.sh'.")
+    messages.append("Run 'tools/verify-deployment.py'.")
     present_messages(args, env_dir, messages)
 
 

@@ -151,7 +151,7 @@ do
             bname=$(basename "$application")
             if ! grep -q "$bname" "$example_bootstrap/kustomization.yaml"; then
                 echo "  Error in $example_bootstrap: Resource $bname is not listed in kustomization.yaml"
-                echo "  Run: tools/verify-deployment.sh -e example-env"
+                echo "  Run: tools/verify-deployment.py -e example-env"
                 exit 1
             fi
             dest="environments/$ENV/$bstrapbase/$bname"
